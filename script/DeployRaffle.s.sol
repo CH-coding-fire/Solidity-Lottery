@@ -4,9 +4,10 @@ pragma solidity ^0.8.18;
 import "../lib/forge-std/src/Script.sol";
 import {Raffle} from "../src/Raffle.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
+import {CreateSubscription} from "./Interactions.s.sol";
 
 contract DeployRaffle is Script {
-    function run() external returns (Raffle, HelperConfig){
+    function run() external returns (Raffle, HelperConfig) {
         HelperConfig helperConfig = new HelperConfig();
         vm.startBroadcast();
         (
@@ -17,6 +18,14 @@ contract DeployRaffle is Script {
             uint64 subscriptionId,
             uint32 callbackGasLimit
         ) = helperConfig.activeNetworkConfig();
+
+        if (subscreiptionId == 0) {
+            CraeteSubscription createSubscription = new CreateSubscription();
+            subscriptionId = craeteSubscription.createSubscription(
+                vrfCoordinator
+            );
+        }
+
         Raffle raffle = new Raffle(
             entranceFee,
             interval,
@@ -33,5 +42,4 @@ contract DeployRaffle is Script {
     //first I must have the RPC to call the network, and the network will deploy
     //the contract into the chain, also to prove that I am the owner of public address
     //I am using to call the network, I must provide the private key
-
 }
