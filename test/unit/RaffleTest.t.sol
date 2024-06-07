@@ -16,13 +16,13 @@ contract RaffleTest is Test {
     uint256 public constant SEND_VALUE = 0.1 ether;
     uint256 public constant SEND_INSUFFICIENT_VALUE = 0.001 ether;
 
-
     uint256 entranceFee;
     uint256 interval;
     address vrfCoordinator;
     bytes32 gasLane;
     uint64 subscriptionId;
     uint32 callbackGasLimit;
+    address linkAddress;
 
     function setUp() external {
         DeployRaffle deployer = new DeployRaffle();
@@ -33,12 +33,13 @@ contract RaffleTest is Test {
             vrfCoordinator,
             gasLane,
             subscriptionId,
-            callbackGasLimit
+            callbackGasLimit,
+            linkAddress
         ) = helperConfig.activeNetworkConfig();
         vm.deal(PLAYER, STARTING_USER_BALANCE);
     }
 
-    function testRaffleInitializesInOpenState() public view{
+    function testRaffleInitializesInOpenState() public view {
         assert(raffle.getRaffleState() == Raffle.RaffleState.OPEN);
     }
 
@@ -52,7 +53,7 @@ contract RaffleTest is Test {
         //Act
         //Assert
         vm.expectRevert(Raffle.Raffle__NotEnoughEthSent.selector);
-        raffle.enterRaffle{value:SEND_INSUFFICIENT_VALUE}();
+        raffle.enterRaffle{value: SEND_INSUFFICIENT_VALUE}();
         vm.stopPrank();
     }
 
@@ -60,30 +61,29 @@ contract RaffleTest is Test {
         //Arrange
         vm.startPrank(PLAYER);
         //Act
-        raffle.enterRaffle{value:SEND_VALUE}();
+        raffle.enterRaffle{value: SEND_VALUE}();
         address payable[] memory players = raffle.getPlayers();
         assertEq(players[0], PLAYER);
-    }    
+    }
 
     function testEmitsEventOnEntrance() public {
         vm.startPrank(PLAYER);
         vm.expectEmit(true, false, false, false, address(raffle));
         emit EnteredRaffle(PLAYER);
-        raffle.enterRaffle{value:SEND_VALUE}();
+        raffle.enterRaffle{value: SEND_VALUE}();
     }
 
     function testCantEnterWhenRaffleIsCalculating() public {
         vm.startPrank(PLAYER);
-        raffle.enterRaffle{value:SEND_VALUE}();
+        raffle.enterRaffle{value: SEND_VALUE}();
         vm.stopPrank();
-        vm.warp(block.timestamp + interval +1);
-        vm.roll(block.number+1);
+        vm.warp(block.timestamp + interval + 1);
+        vm.roll(block.number + 1);
         raffle.performUpkeep("");
 
         vm.startPrank(PLAYER);
         vm.expectRevert(Raffle.Raffle__RaffleNotOpen.selector);
-        raffle.enterRaffle{value:SEND_VALUE}();
+        raffle.enterRaffle{value: SEND_VALUE}();
         vm.stopPrank();
-
     }
 }

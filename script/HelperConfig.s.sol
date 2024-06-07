@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 import "../lib/forge-std/src/Script.sol";
 import {VRFCoordinatorV2Interface} from "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
 import {VRFCoordinatorV2Mock} from "@chainlink/contracts/src/v0.8/mocks/VRFCoordinatorV2Mock.sol";
+import {LinkToken} from "../test/mocks/linkToken.sol";
 
 contract HelperConfig is Script {
     struct NetworkConfig {
@@ -54,6 +55,7 @@ contract HelperConfig is Script {
             baseFee,
             gasPriceLink
         );
+        LinkToken link = new LinkToken();
         vm.stopBroadcast();
 
         return
@@ -63,7 +65,8 @@ contract HelperConfig is Script {
                 vrfCoordinator: address(vrfCoordinatorV2Mock),
                 gasLane: 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c, //does not matter
                 subscriptionId: 0, //our script will add this!
-                callbackGasLimit: 500000
+                callbackGasLimit: 500000,
+                link: address(link)
             });
     }
 }
