@@ -19,6 +19,7 @@ contract Raffle is VRFConsumerBaseV2 {
         uint256 numPlayers,
         uint256 raffleState
     );
+    error Raffle__NoBalance();
 
     enum RaffleState {
         OPEN, //0
