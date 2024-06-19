@@ -43,6 +43,7 @@ contract Raffle is VRFConsumerBaseV2 {
     //Events
     event EnteredRaffle(address indexed player);
     event PickedWinner(address indexed winner);
+    event RequestedRaffleWinner(uint256 indexed requestId);
 
     constructor(
         uint256 entranceFee,
@@ -85,7 +86,7 @@ contract Raffle is VRFConsumerBaseV2 {
         return (upkeepNeeded, "0x0");
     }
 
-    function performUpkeep(bytes calldata) external {
+    function performUpkeep(bytes calldata) external returns(uint256){
         (bool upkeepNeeded, ) = checkUpkeep("");
         if (!upkeepNeeded) {
             revert Raffle__UpkeepNotNeeded(
@@ -95,14 +96,16 @@ contract Raffle is VRFConsumerBaseV2 {
             );
         }
         s_raffleState = RaffleState.CALCULATING;
-        i_vrfCoordinator.requestRandomWords(
+        uint256 requestId = i_vrfCoordinator.requestRandomWords(
             i_gasLane, //gas lane
             i_subscriptionId,
             REQUEST_CONFIRMATIONS,
             i_callbackGasLimit,
             NUM_WORDS
         );
+        emit RequestedRaffleWinner(requestId);
     }
+
 
     function fulfillRandomWords(
         uint256 requestId,
@@ -136,6 +139,19 @@ contract Raffle is VRFConsumerBaseV2 {
     function getPlayers() external view returns (address payable[] memory) {
         return s_players;
     }
+
+    function getRecentWinner() external view returns (address) {
+        return s_recentWinner;
+    }
+
+    function getLengthOfPlayers() external view returns (uint256){
+        return s_players.length;
+    }
+
+    function getLastTimeStamp() external view returns (uint256){
+        return s_lastTimeStamp;
+    }
+
 }
 
 // Layout of Contract:
